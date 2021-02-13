@@ -9,8 +9,13 @@ import com.cards.bonus.view.CardView;
 import com.cards.bonus.view.PurchasesView;
 import ma.glasnost.orika.MapperFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,5 +82,37 @@ public class CardService {
         cardRepository.delete(card);
     }
 
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public List<CardView> generatedCard(int quantity){
+        List<Card> newCardList = new ArrayList<>();
+        List<Card> allCards = new ArrayList<>(cardRepository.findAll());
+        for(int i = 0; i < quantity; i++){
+            Card card = new Card();
+            card.setNumberCard(100 + (int)(Math.random() * 1000));
+            card.setSerialCard(1000 + (int)(Math.random() * 10000));
+            for(Card cards : allCards){
+                    if (cards.getNumberCard() == card.getNumberCard()
+                            || cards.getSerialCard() == card.getSerialCard()) {
+                        while(cards.getNumberCard() != card.getNumberCard()
+                                && cards.getSerialCard() == card.getSerialCard()){
+                            card.setNumberCard(100 + (int)(Math.random() * 1000));
+                            card.setSerialCard(1000 + (int)(Math.random() * 10000));
+                        }
+                    }
+            }
+            LocalDateTime localDateTime = LocalDateTime.of(LocalDate.now(), LocalTime.now());
+            card.setStartTimeCard(localDateTime);
+            card.setEndCardTime(localDateTime.plusYears(3));
+            card.setSum(0);
+            card.setCondition(Condition.NotACTIVATED);
+            newCardList.add(card);
+        }
+        for(Card newCard : newCardList){
+            cardRepository.save(newCard);
+        }
+        return newCardList.stream()
+                .map(mapperFactory.getMapperFacade(Card.class, CardView.class)::map)
+                .collect(Collectors.toList());
+    }
 
 }

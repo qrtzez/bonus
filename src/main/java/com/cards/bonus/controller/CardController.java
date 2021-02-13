@@ -48,4 +48,9 @@ public class CardController {
     public void removeCard(@PathVariable("id") int id){
         cardService.removeCard(id);
     }
+
+    @PostMapping("/generation/{quantity}")
+    public List<CardView> generationCard(@PathVariable("quantity") int quantity){
+        return cardService.generatedCard(quantity);
+    }
 }
