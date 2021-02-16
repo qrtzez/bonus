@@ -1,5 +1,6 @@
 package com.cards.bonus.service;
 
+import com.cards.bonus.exeption.NotFoundException;
 import com.cards.bonus.model.Card;
 import com.cards.bonus.model.Condition;
 import com.cards.bonus.model.Purchases;
@@ -40,8 +41,11 @@ public class CardService {
 
     @Transactional
     public CardView findCard(int id){
-        Card findCard = cardRepository.findById(id).get();
-        return mapperFactory.getMapperFacade(Card.class, CardView.class).map(findCard);
+        Card card = cardRepository.findById(id).orElse(null);
+        if(card == null){
+            throw new NotFoundException();
+        }
+        return mapperFactory.getMapperFacade(Card.class, CardView.class).map(card);
     }
 
     @Transactional
@@ -54,7 +58,10 @@ public class CardService {
 
     @Transactional
     public CardPurchasesView findProfileCard(int id){
-        Card card = cardRepository.findById(id).get();
+        Card card = cardRepository.findById(id).orElse(null);
+        if(card == null){
+            throw new NotFoundException();
+        }
         List<Purchases> purchasesList = card.getPurchasesList();
         CardPurchasesView cardPurchasesView = mapperFactory.getMapperFacade(Card.class, CardPurchasesView.class).map(card);
         List<PurchasesView> cardPurchasesViewList = purchasesList.stream()
@@ -66,7 +73,10 @@ public class CardService {
 
     @Transactional
     public void reverseConditionCard(int id){
-        Card card = cardRepository.findById(id).get();
+        Card card = cardRepository.findById(id).orElse(null);
+        if(card == null){
+            throw new NotFoundException();
+        }
         if(card.getCondition() == Condition.ACTIVATED && card.getCondition() != Condition.EXPIRED){
             card.setCondition(Condition.NotACTIVATED);
         }
@@ -78,7 +88,10 @@ public class CardService {
 
     @Transactional
     public void removeCard(int id){
-        Card card = cardRepository.findById(id).get();
+        Card card = cardRepository.findById(id).orElse(null);
+        if(card == null){
+            throw new NotFoundException();
+        }
         cardRepository.delete(card);
     }
 
